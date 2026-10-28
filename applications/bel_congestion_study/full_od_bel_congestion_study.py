@@ -22,7 +22,7 @@ from altrios import defaults, sim_manager
 from altrios.train_planner.planner_config import TrainPlannerConfig
 
 
-RESULTS_DIR = alt.resources_root().parent / "demos/results/case study"
+RESULTS_DIR = Path(__file__).resolve().parent / "results"
 RESULTS_CSV = RESULTS_DIR / "Full_OD_BEL_Congestion_Study_Results.csv"
 TRACE_ROOT = RESULTS_DIR / "full_od_bel_congestion_traces"
 NETWORK_PATH = alt.resources_root() / "networks/Taconite-NoBalloon.yaml"
@@ -197,10 +197,8 @@ def build_consist_plan(
                             "Cars_Empty": float(cars_empty),
                             "Containers_Loaded": 0.0,
                             "Containers_Empty": 0.0,
-                            # The manual planner groups consist rows on this field.  It
-                            # initializes actual diesel/BEL energy from ``loco_info``,
-                            # so use one common bookkeeping value to keep all four
-                            # locomotives in the same train.
+                            # Bookkeeping only: the manual planner initializes actual
+                            # diesel/BEL energy from ``loco_info`` and ignores this value.
                             "Departure_SOC_J": defaults.DIESEL_TANK_CAPACITY_J,
                             "Departure_Time_Planned_Hr": departure_hr,
                             "Arrival_Time_Planned_Hr": arrival_hr,

@@ -18,8 +18,8 @@ import pandas as pd
 
 import altrios as alt
 from altrios import sim_manager
-from altrios.demos import full_od_bel_congestion_study as base
-from altrios.demos import full_od_bel_congestion_directional_study as directional
+import full_od_bel_congestion_study as base
+import full_od_bel_congestion_directional_study as directional
 
 
 OUTPUT_DIR = base.RESULTS_DIR / "full_od_bel_meet_pass_diagrams"

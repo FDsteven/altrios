@@ -18,7 +18,7 @@ import pandas as pd
 
 import altrios as alt
 from altrios import sim_manager
-from altrios.demos import full_od_bel_congestion_study as base
+import full_od_bel_congestion_study as base
 
 
 SOURCE_RESULTS = base.RESULTS_CSV
