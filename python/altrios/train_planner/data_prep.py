@@ -655,6 +655,7 @@ def scale_rv_mass_and_length(
 
     rv_freight_mass_scaler = 1.0
     rv_base_mass_scaler = 1.0
+    rv_length_scaler = 1.0
     if total_mass_kilograms is not None:
         this_train_kilograms = total_mass_kilograms
         # Only adjust freight mass if that is sufficient to equalize

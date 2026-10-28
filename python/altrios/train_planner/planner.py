@@ -662,10 +662,19 @@ def run_train_planner(
                         "Destination_ID": "Destination",
                         "Departure_Time_Planned_Hr": "Hour"})
                 .drop(cs.starts_with("Refuel"))
-                .group_by(~cs.starts_with("Locomotive_"))
+                # Departure_SOC_J is per locomotive, so it can't be a train grouping key
+                .group_by(~(cs.starts_with("Locomotive_") | cs.by_name("Departure_SOC_J", require_all=False)))
                     .agg(pl.col("Locomotive_ID").unique().alias("Locomotive_IDs"))
                 .with_columns(pl.sum_horizontal("Cars_Loaded", "Cars_Empty").alias("Number_of_Cars"))
-            )            
+            )
+            split_trains = dispatch_schedule.filter(
+                pl.len().over("Train_ID", "Origin", "Destination", "Hour") > 1
+            ).get_column("Train_ID").unique().sort()
+            if split_trains.len() > 0:
+                raise ValueError(
+                    "Locomotive rows of the same train in `consist_plan_in` disagree on "
+                    f"train-level columns, so the train would be split; Train_IDs: {split_trains.to_list()}"
+                )
 
     # Create refuelers if not provided
     if refuelers is None:
@@ -787,14 +796,6 @@ def run_train_planner(
                         freight_type_to_car_type = freight_type_to_car_type
                     )
 
-                    # Create train configuration
-                    train_config = alt.TrainConfig(
-                        rail_vehicles=rv_to_use,
-                        n_cars_by_type=n_cars_by_type,
-                        train_type=train_type,
-                        cd_area_vec=cd_area_vec,
-                    )
-
                     # Get initial state of charge for selected locomotives
                     loco_start_soc_j = dispatched.get_column("SOC_J")
 
@@ -825,14 +826,25 @@ def run_train_planner(
                         for loco_type in dispatched.get_column("Locomotive_Type")
                     ]
 
-                    if ("Train_Weight_tons" in this_train) or ("Train_Length_meters" in this_train):
+                    train_weight_tons = this_train.get("Train_Weight_tons")
+                    train_length_meters = this_train.get("Train_Length_meters")
+                    if (train_weight_tons is not None) or (train_length_meters is not None):
                         rv_to_use = data_prep.scale_rv_mass_and_length(
                             rv_to_use,
                             n_cars_by_type,
                             locos,
-                            this_train["Train_Weight_tons"] * alt.utilities.KG_PER_TON,
-                            this_train["Train_Length_meters"],
+                            train_weight_tons * alt.utilities.KG_PER_TON
+                            if train_weight_tons is not None else None,
+                            train_length_meters,
                         )
+
+                    # Create train configuration (after any mass/length scaling of rv_to_use above)
+                    train_config = alt.TrainConfig(
+                        rail_vehicles=rv_to_use,
+                        n_cars_by_type=n_cars_by_type,
+                        train_type=train_type,
+                        cd_area_vec=cd_area_vec,
+                    )
 
                     # Set state of charge for electric locomotives
                     for i, loco in enumerate(locos):
