@@ -12,7 +12,7 @@ mass_rot_per_axle_kilograms: 750.0
 bearing_res_per_axle_newtons: 40.26
 rolling_ratio: 0.001546
 davis_b_seconds_per_meter: 0.0
-cd_area_square_meters: 1.231
+cd_area_square_meters: 4.087
 curve_coeff_0: 0.056
 curve_coeff_1: 0.4387579
 curve_coeff_2: 0.01025485
